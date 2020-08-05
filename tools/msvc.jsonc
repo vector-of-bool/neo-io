@@ -3,6 +3,8 @@
 {
     "compiler_id": "msvc",
     "cxx_flags": [
-        "/std:c++latest"
-    ]
+        "/std:c++latest",
+        "/Zc:preprocessor"
+    ],
+    "debug": true
 }
