@@ -1,12 +1,9 @@
 #pragma once
 
-#include <neo/io/concepts/stream.hpp>
 #include <neo/io/stream/result.hpp>
 
 #include <neo/assert.hpp>
 #include <neo/buffer_range.hpp>
-
-#include <utility>
 
 namespace neo {
 
@@ -15,9 +12,14 @@ struct posix_iovec_type {
     size_t iov_len;
 };
 
-class posix_fd_stream {
-public:
-    // POSIX is all `int` all the way down
+class posix_fd_stream_base {
+protected:
+    // No one can use this class directly
+    ~posix_fd_stream_base() = default;
+
+    /**
+     * POSIX is all `int` all the way down
+     */
     using native_handle_type = int;
 
     /**
@@ -27,32 +29,10 @@ public:
      */
     constexpr static native_handle_type invalid_native_handle_value = -1;
 
-public:
     /**
-     * Default-constructs to an invalid stream
+     * The file descriptor underlying the stream. Defaults to be an invalid file descriptor
      */
-    constexpr posix_fd_stream() = default;
-    /**
-     * Destructor will close the file descriptor
-     */
-    ~posix_fd_stream() { close(); }
-
-    /**
-     * Move-construct a stream
-     */
-    constexpr posix_fd_stream(posix_fd_stream&& other)
-        : _fd(other._fd) {
-        other._fd = invalid_native_handle_value;
-    }
-
-    /**
-     * Move-assign a stream
-     */
-    posix_fd_stream& operator=(posix_fd_stream&& other) noexcept {
-        close();
-        _fd = other.release();
-        return *this;
-    }
+    native_handle_type _native_handle = invalid_native_handle_value;
 
     /**
      * Read from the stream
@@ -71,49 +51,17 @@ public:
     }
 
     /**
-     * Obtain the file descriptor of the stream
-     */
-    [[nodiscard]] constexpr native_handle_type native_handle() const noexcept { return _fd; }
-
-    /**
      * Close the stream
      */
     void close() noexcept;
-
-    /**
-     * Relinquish ownership of the underlying stream, and return the file descriptor to the caller
-     */
-    [[nodiscard]] constexpr native_handle_type release() noexcept {
-        auto r = _fd;
-        _fd    = invalid_native_handle_value;
-        return r;
-    }
-
-    /**
-     * Adopt ownership over the given file descriptor object. The file descriptor must be given as
-     * an rvalue-reference, which will be set to the invalid file descriptor value.
-     */
-    [[nodiscard]] static posix_fd_stream from_native_handle(native_handle_type&& fd) noexcept {
-        posix_fd_stream ret;
-        ret._fd = fd;
-        fd      = invalid_native_handle_value;
-        return ret;
-    }
-
-    /**
-     * Duplicate an existing file descriptor and return a stream that owns the new file descriptor.
-     */
-    [[nodiscard]] static posix_fd_stream dup_native_handle(native_handle_type fd);
 
 private:
     // For decent performance in the case of a lot of small buffers, we have a thread-local array of
     // iovec objects that can are set to refer to the buffers in a given buffer sequence, and then
     // vectored IO is executed against that array. The array is stored in a separate TU, so we just
     // declare a pointer here.
-    static std::size_t                    _tl_iov_arr_len;
+    static thread_local std::size_t       _tl_iov_arr_len;
     static thread_local posix_iovec_type* _tl_small_iov_array;
-
-    native_handle_type _fd = invalid_native_handle_value;
 
     native_stream_write_result _do_writev(std::size_t nbufs) noexcept;
     native_stream_read_result  _do_readv(std::size_t nbufs) noexcept;
@@ -125,7 +73,7 @@ private:
     native_stream_read_result _do_read_some(mutable_buffer buf) noexcept;
 
     template <typename T>
-    T _mk_result(ssize_t n_transfered) {
+    T _mk_result(std::ptrdiff_t n_transfered) {
         if (n_transfered == -1) {
             return {0, errno};
         }
@@ -171,8 +119,8 @@ private:
     }
 };
 
-static_assert(read_write_stream<posix_fd_stream>);
-
-using native_stream = posix_fd_stream;
+#ifndef _WIN32
+using native_stream_base = posix_fd_stream_base;
+#endif
 
 }  // namespace neo

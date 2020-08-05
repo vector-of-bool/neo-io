@@ -32,7 +32,7 @@ TEST_CASE("Read from a file") {
 
     neo::stream_io_buffers buffers{this_file};
 
-    neo::const_buffer data  = buffers.data(1024);
+    neo::const_buffer data  = buffers.data(4096);
     auto              sview = std::string_view(data);
     CHECK(sview.find("sview.find(") != sview.npos);
 }

@@ -2,23 +2,61 @@
 
 #include <neo/io/stream/native.hpp>
 
+#include <neo/buffer_range.hpp>
+
 #include <filesystem>
 #include <optional>
 #include <system_error>
 
 namespace neo {
 
-enum class open_mode {
-    read = 1,
-    write,
-    append,
+enum class open_mode : int {
+    none   = 0,
+    read   = 1,
+    write  = 1 << 1,
+    append = 1 << 2,
 
-    create,
-    no_create,
+    create           = 1 << 3,
+    create_exclusive = 1 << 4,
+    no_create        = 1 << 5,
 
-    no_trunc,
-    trunc,
+    no_trunc = 1 << 6,
+    trunc    = 1 << 7,
 };
+
+constexpr open_mode operator|(open_mode l, open_mode r) noexcept {
+    return open_mode(int(l) | int(r));
+}
+constexpr open_mode& operator|=(open_mode& self, open_mode r) noexcept { return self = (self | r); }
+
+constexpr open_mode default_open_flags(open_mode flags = open_mode()) noexcept {
+    using om  = open_mode;
+    auto test = [&](om f) { return bool(int(flags) & int(f)); };
+
+    // Default open mode is to read
+    if (flags == om::none) {
+        flags = om::read;
+    }
+
+    // If appending, we want to both read and write
+    if (test(om::append)) {
+        flags |= om::read;
+        flags |= om::write;
+    }
+
+    if (test(om::write)) {
+        // If not told otherwise, writing will create the file if it does not exist
+        if (!test(om::no_create)) {
+            flags |= om::create;
+        }
+        // By default, opening a file to write will truncate it (except if appending)
+        if (!test(om::append) && !test(om::no_trunc)) {
+            flags |= om::trunc;
+        }
+    }
+
+    return flags;
+}  // namespace neo
 
 class file_stream {
     native_stream _strm;
@@ -49,16 +87,16 @@ public:
     open(const std::filesystem::path& fpath, open_mode, std::error_code&) noexcept;
 
     template <buffer_range Bufs>
-    auto write_some(const Bufs& b) noexcept {
-        return _strm.write_some(b);
+    auto write_some(Bufs&& b) noexcept requires requires {
+        _strm.write_some(b);
     }
+    { return _strm.write_some(b); }
 
     template <mutable_buffer_range Bufs>
-    auto read_some(const Bufs& b) noexcept {
-        return _strm.read_some(b);
+    auto read_some(Bufs&& b) noexcept requires requires {
+        _strm.read_some(b);
     }
+    { return _strm.read_some(b); }
 };
-
-static_assert(read_write_stream<file_stream>);
 
 }  // namespace neo

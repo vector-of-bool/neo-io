@@ -15,8 +15,8 @@ template <typename T>
 concept transfer_result =
     semiregular<T> &&
     requires(const T result, std::remove_cvref_t<T> mut_result) {
-        { result.bytes_transferred } -> same_as<std::size_t>;
-        { result.is_failure() } noexcept -> same_as<bool>;
+        { result.bytes_transferred } -> alike<std::size_t>;
+        { result.is_failure() } noexcept -> alike<bool>;
         // XXX: Failes with GCC 9
         // { mut_result += result } noexcept -> same_as<std::remove_cvref_t<T>&>;
         { mut_result += result } noexcept;

@@ -41,7 +41,4 @@ struct proto_vectored_read_stream {
     proto_transfer_result read_some(S&&) noexcept;
 };
 
-static_assert(read_stream<proto_read_stream>);
-static_assert(vectored_read_stream<proto_vectored_read_stream>);
-
 }  // namespace neo

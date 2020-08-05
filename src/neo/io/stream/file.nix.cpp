@@ -1,48 +1,43 @@
-#if !_WIN32
-
 #include <neo/io/stream/file.hpp>
+
+#if !_WIN32
 
 #include <fcntl.h>
 #include <unistd.h>
 
 std::optional<neo::file_stream> neo::file_stream::open(const std::filesystem::path& fpath,
-                                                       neo::open_mode               flags,
+                                                       neo::open_mode               open_flags,
                                                        std::error_code&             ec) noexcept {
-    int  open_mode = 0;
-    auto flag_set  = [&](auto f) { return (int)flags & (int)f; };
+    int open_mode  = 0;
+    using om       = neo::open_mode;
+    auto test_flag = [&](om f) { return (int)open_flags & (int)f; };
+    open_flags     = default_open_flags(open_flags);
 
-    if (flag_set(open_mode::append)) {
+    if (test_flag(open_mode::append)) {
         open_mode |= O_APPEND;
     }
 
-    if (flag_set(open_mode::write)) {
-        // If we are writing, and the user hasn't specified whether to create or not, default to
-        // create
-        if (!flag_set(open_mode::create) && !flag_set(open_mode::no_create)) {
-            open_mode |= O_CREAT;
-        }
-        // Default to truncate the file
-        if (!flag_set(open_mode::no_trunc)) {
-            open_mode |= O_TRUNC;
-        }
-        if (flag_set(open_mode::read)) {
-            open_mode |= O_RDWR;
+    if (test_flag(om::read)) {
+        if (test_flag(om::write)) {
+            open_mode = O_RDWR;
         } else {
-            open_mode |= O_WRONLY;
+            open_mode = O_RDONLY;
         }
-    } else if (flag_set(open_mode::read)) {
-        open_mode |= O_RDONLY;
-    } else {
-        // Neither read nor write was specified. Default to read.
-        open_mode |= O_RDONLY;
+    } else if (test_flag(om::write)) {
+        open_mode = O_WRONLY;
     }
 
-    if (flag_set(open_mode::create)) {
-        open_mode |= O_CREAT;
-    }
-
-    if (flag_set(open_mode::trunc)) {
+    if (test_flag(om::trunc)) {
+        // Truncate the file upon opening
         open_mode |= O_TRUNC;
+    }
+
+    if (test_flag(om::create_exclusive)) {
+        open_mode |= O_CREAT | O_EXCL;
+    } else if (test_flag(om::create)) {
+        open_mode |= O_CREAT;
+    } else {
+        // The file should already exist
     }
 
     open_mode |= O_CLOEXEC;

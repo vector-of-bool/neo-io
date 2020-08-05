@@ -44,7 +44,7 @@ public:
     constexpr decltype(auto) prepare(std::size_t size) requires(write_stream<stream_type>) {
         auto ready_size = buffers().size();
         if (ready_size < size) {
-            safe_grow_dynbuf(buffers(), size - ready_size);
+            dynbuf_safe_grow(buffers(), size - ready_size);
         }
         return buffers().data(0, size);
     }
@@ -59,7 +59,7 @@ public:
         auto already_size = buffers().size();
         if (already_size < size) {
             auto want_grow_n = size - already_size;
-            auto in_bufs     = safe_grow_dynbuf(buffers(), want_grow_n);
+            auto in_bufs     = dynbuf_safe_grow(buffers(), want_grow_n);
             auto read_res    = read(stream(), in_bufs);
             auto unused_size = buffer_size(in_bufs) - read_res.bytes_transferred;
             buffers().shrink(unused_size);
@@ -73,9 +73,9 @@ public:
 };
 
 template <typename Stream>
-stream_io_buffers(Stream &&) -> stream_io_buffers<Stream>;
+stream_io_buffers(Stream &&)->stream_io_buffers<Stream>;
 
 template <typename Stream, typename Buffers>
-stream_io_buffers(Stream&&, Buffers &&) -> stream_io_buffers<Stream, Buffers>;
+stream_io_buffers(Stream&&, Buffers &&)->stream_io_buffers<Stream, Buffers>;
 
 }  // namespace neo

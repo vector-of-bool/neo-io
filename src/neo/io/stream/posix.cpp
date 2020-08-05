@@ -1,6 +1,6 @@
-#ifndef _WIN32
-
 #include "./posix.hpp"
+
+#ifndef _WIN32
 
 #include <neo/io/stream/stdio.hpp>
 
@@ -32,46 +32,39 @@ std::array<posix_iovec_type, tl_iov_arr_len> tl_small_iov_array;
 }  // namespace
 
 /// Initialize the class-thread_local pointer to the iovec array
-thread_local posix_iovec_type* posix_fd_stream::_tl_small_iov_array = tl_small_iov_array.data();
+thread_local posix_iovec_type* posix_fd_stream_base::_tl_small_iov_array
+    = tl_small_iov_array.data();
 
-posix_fd_stream posix_fd_stream::dup_native_handle(posix_fd_stream::native_handle_type fd) {
-    native_handle_type new_fd = ::dup(fd);
-    if (new_fd >= 0) {
-        return from_native_handle(std::move(new_fd));
-    }
-    throw std::system_error(std::error_code(errno, std::system_category()), "::dup() failed");
-}
-
-void posix_fd_stream::close() noexcept {
-    if (_fd != invalid_native_handle_value) {
-        auto failed = ::close(_fd);
+void posix_fd_stream_base::close() noexcept {
+    if (_native_handle != invalid_native_handle_value) {
+        auto failed = ::close(_native_handle);
         if (failed) {
-            std::fputs("posix_fd_stream::close() encountered an error()\n", stderr);
+            std::fputs("posix_fd_stream_base::close() encountered an error()\n", stderr);
         }
     }
 }
 
-native_stream_write_result posix_fd_stream::_do_writev(std::size_t n_bufs) noexcept {
+native_stream_write_result posix_fd_stream_base::_do_writev(std::size_t n_bufs) noexcept {
     auto iov_ptr  = reinterpret_cast<const iovec*>(_tl_small_iov_array);
-    auto nwritten = ::writev(_fd, iov_ptr, static_cast<int>(n_bufs));
+    auto nwritten = ::writev(_native_handle, iov_ptr, static_cast<int>(n_bufs));
     return _mk_result<native_stream_write_result>(nwritten);
 }
 
-native_stream_write_result posix_fd_stream::_do_write_some(const_buffer buf) noexcept {
-    auto nwritten = ::write(_fd, buf.data(), buf.size());
+native_stream_write_result posix_fd_stream_base::_do_write_some(const_buffer buf) noexcept {
+    auto nwritten = ::write(_native_handle, buf.data(), buf.size());
     return _mk_result<native_stream_write_result>(nwritten);
 }
 
-native_stream_read_result posix_fd_stream::_do_read_some(mutable_buffer buf) noexcept {
-    auto nread = ::read(_fd, buf.data(), buf.size());
+native_stream_read_result posix_fd_stream_base::_do_read_some(mutable_buffer buf) noexcept {
+    auto nread = ::read(_native_handle, buf.data(), buf.size());
     return _mk_result<native_stream_read_result>(nread);
 }
 
 namespace {
 
-struct nonown_fd_stream : neo::posix_fd_stream {
-    ~nonown_fd_stream() { this->_fd = invalid_native_handle_value; }
-    nonown_fd_stream(native_handle_type fd) { _fd = fd; }
+struct nonown_fd_stream : neo::native_stream {
+    ~nonown_fd_stream() { (void)this->release(); }
+    nonown_fd_stream(native_handle_type fd) { reset(std::move(fd)); }
 };
 
 static nonown_fd_stream stdin_fd_stream{STDIN_FILENO};
@@ -80,8 +73,8 @@ static nonown_fd_stream stderr_fd_stream{STDERR_FILENO};
 
 }  // namespace
 
-posix_fd_stream& neo::stdin_stream  = stdin_fd_stream;
-posix_fd_stream& neo::stdout_stream = stdout_fd_stream;
-posix_fd_stream& neo::stderr_stream = stderr_fd_stream;
+neo::native_stream& neo::stdin_stream  = stdin_fd_stream;
+neo::native_stream& neo::stdout_stream = stdout_fd_stream;
+neo::native_stream& neo::stderr_stream = stderr_fd_stream;
 
 #endif
