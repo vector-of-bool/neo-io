@@ -55,7 +55,7 @@ public:
         buffers().consume(write_res.bytes_transferred);
     }
 
-    constexpr decltype(auto) data(std::size_t size) requires(read_stream<stream_type>) {
+    constexpr decltype(auto) next(std::size_t size) requires(read_stream<stream_type>) {
         auto already_size = buffers().size();
         if (already_size < size) {
             auto want_grow_n = size - already_size;

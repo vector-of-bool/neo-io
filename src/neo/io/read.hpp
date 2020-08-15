@@ -5,7 +5,6 @@
 
 #include <neo/io/detail/io_op.hpp>
 
-#include <neo/buffer_range_consumer.hpp>
 #include <neo/const_buffer.hpp>
 
 namespace neo {

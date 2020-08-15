@@ -3,7 +3,7 @@
 #include <neo/io/completion_condition.hpp>
 #include <neo/io/concepts/write_stream.hpp>
 
-#include <neo/buffer_range_consumer.hpp>
+#include <neo/buffers_consumer.hpp>
 #include <neo/const_buffer.hpp>
 
 namespace neo {
@@ -17,9 +17,9 @@ template <typename Bufs, typename Cond, typename Op, bool UseBufferRanges>
 constexpr auto
 do_io_op(Bufs&& bufs_, Cond&& cond, std::bool_constant<UseBufferRanges>, Op&& op) noexcept {
     // consumer keeps track of advancing through the buffer as we read/write.
-    buffer_range_consumer bufs{bufs_};
+    buffers_consumer bufs{bufs_};
 
-    using ResultType = decltype(op(bufs.prepare(1)));
+    using ResultType = decltype(op(bufs.next(1)));
     ResultType res_acc;
     res_acc.bytes_transferred = 0;
 
@@ -40,7 +40,7 @@ do_io_op(Bufs&& bufs_, Cond&& cond, std::bool_constant<UseBufferRanges>, Op&& op
             const std::size_t n_to_transfer
                 = (std::min)(std::size_t(1024 * 1024 * 10), req_to_transfer);
             // Do a single operation with multiple buffers
-            res_acc += op(bufs.prepare(n_to_transfer));
+            res_acc += op(bufs.next(n_to_transfer));
         } else {
             // The calling Op does not want buffer ranges (is not vectorized),
             // so just pass it the next contiguous buffer. Clamp the buffer size

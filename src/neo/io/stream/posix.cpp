@@ -9,6 +9,7 @@
 
 #include <climits>
 #include <cstdio>
+#include <iostream>
 
 using namespace neo;
 
