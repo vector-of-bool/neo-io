@@ -13,7 +13,7 @@ jobs:
           echo Downloading DDS executable
           pwsh -noni -c iwr https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-win-x64.exe -OutFile dds.exe || exit 1
           echo Build
-          .\dds catalog import -j pkgs-cat.json
+          .\dds catalog import -j pkgs-cat.jsonc || exit 1
           .\dds.exe build -t tools/msvc.jsonc
         displayName: Build and Run Unit Tests
 
@@ -29,7 +29,7 @@ jobs:
           echo Downloading DDS executable
           curl -L https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-linux-x64 -o dds
           chmod +x dds
-          ./dds catalog import -j pkgs-cat.json
+          ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
       - script: ./dds build -t tools/gcc-9.jsonc
         displayName: Build and Run Unit Tests
@@ -46,7 +46,7 @@ jobs:
           echo Downloading DDS executable
           curl -L https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-linux-x64 -o dds
           chmod +x dds
-          ./dds catalog import -j pkgs-cat.json
+          ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
       - script: ./dds build -t tools/gcc-10.jsonc
         displayName: Build and Run Unit Tests
@@ -62,7 +62,7 @@ jobs:
           echo Downloading DDS executable
           curl -L https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-macos-x64 -o dds
           chmod +x dds
-          ./dds catalog import -j pkgs-cat.json
+          ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
       - script: ./dds build -t tools/gcc-9.jsonc
         displayName: Build and Run Unit Tests
@@ -78,7 +78,7 @@ jobs:
           echo Downloading DDS executable
           curl -L https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-macos-x64 -o dds
           chmod +x dds
-          ./dds catalog import -j pkgs-cat.json
+          ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
       - script: ./dds build -t tools/gcc-10.jsonc
         displayName: Build and Run Unit Tests
