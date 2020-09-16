@@ -118,6 +118,7 @@ const std::error_category& getaddrinfo_category() noexcept;
 class address {
     friend class socket;
     std::array<std::byte, 128> _storage{};
+    std::size_t                _size = 0;
 
 public:
     enum class family {

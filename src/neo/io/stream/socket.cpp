@@ -72,6 +72,7 @@ std::optional<address> address::resolve(const std::string& host,
                res->ai_protocol,
                res->ai_socktype);
     std::memcpy(&ret._storage, res->ai_addr, res->ai_addrlen);
+    ret._size = res->ai_addrlen;
     ::freeaddrinfo(res);
     return ret;
 }
@@ -128,7 +129,7 @@ void socket::connect(address addr, std::error_code& ec) noexcept {
     io_detail::init_sockets();
     auto rc = ::connect(_stream.native_handle(),
                         reinterpret_cast<const ::sockaddr*>(&addr._storage),
-                        sizeof(addr._storage));
+                        static_cast<::socklen_t>(addr._size));
     if (rc) {
         ec = std::error_code(errno, std::system_category());
     }
