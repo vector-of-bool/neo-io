@@ -56,7 +56,7 @@ constexpr open_mode default_open_flags(open_mode flags = open_mode()) noexcept {
     }
 
     return flags;
-}  // namespace neo
+}
 
 class file_stream {
     native_stream _strm;
