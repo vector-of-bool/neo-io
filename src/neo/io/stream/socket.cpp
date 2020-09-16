@@ -1,5 +1,6 @@
 #include "./socket.hpp"
 
+#include <cstring>
 #include <ostream>
 
 #if NEO_OS_IS_UNIX_LIKE

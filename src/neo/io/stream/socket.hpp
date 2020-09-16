@@ -11,7 +11,11 @@ namespace neo {
 
 namespace io_detail {
 
+#if NEO_OS_IS_WINDOWS
 void init_sockets() noexcept;
+#else
+inline void init_sockets() noexcept {}
+#endif
 
 struct wsabuf {
     std::uint32_t len;
