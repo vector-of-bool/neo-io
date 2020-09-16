@@ -1,11 +1,13 @@
 #include "./socket.hpp"
 
-#include <cstring>
 #include <ostream>
 
 #if NEO_OS_IS_UNIX_LIKE
 #include <netdb.h>
 #include <sys/socket.h>
+#elif NEO_OS_IS_WINDOWS
+#include <WS2tcpip.h>
+#endif
 
 using namespace neo;
 
@@ -49,6 +51,7 @@ address::family address::get_family() const noexcept {
 std::optional<address> address::resolve(const std::string& host,
                                         const std::string& service,
                                         std::error_code&   ec) noexcept {
+    io_detail::init_sockets();
     ::addrinfo* res = nullptr;
     auto        rc  = ::getaddrinfo(host.data(), service.data(), nullptr, &res);
     if (rc != 0) {
@@ -72,10 +75,19 @@ std::optional<address> address::resolve(const std::string& host,
     return ret;
 }
 
-socket::~socket() { ::shutdown(native().native_handle(), SHUT_RDWR); }
+socket::~socket() {
+#if NEO_OS_IS_UNIX_LIKE
+    ::shutdown(native().native_handle(), SHUT_RDWR);
+#elif NEO_OS_IS_WINDOWS
+    // On windows, the underlying wsa_socket_stream will shutdown for us
+#else
+#error "We don't know how to shutdown sockets on this platform"
+#endif
+}
 
 std::optional<neo::socket>
 socket::create(address::family fam, socket::type typ, std::error_code& ec) noexcept {
+    io_detail::init_sockets();
     auto af_fam = [&] {
         switch (fam) {
         case address::family::inet:
@@ -112,6 +124,7 @@ socket::create(address::family fam, socket::type typ, std::error_code& ec) noexc
 }
 
 void socket::connect(address addr, std::error_code& ec) noexcept {
+    io_detail::init_sockets();
     auto rc = ::connect(_stream.native_handle(),
                         reinterpret_cast<const ::sockaddr*>(&addr._storage),
                         sizeof(addr._storage));
@@ -119,4 +132,3 @@ void socket::connect(address addr, std::error_code& ec) noexcept {
         ec = std::error_code(errno, std::system_category());
     }
 }
-#endif

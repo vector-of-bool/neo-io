@@ -11,15 +11,24 @@ namespace neo {
 
 namespace io_detail {
 
+void init_sockets() noexcept;
+
 struct wsabuf {
     std::uint32_t len;
     char*         buf;
 };
 
 class wsa_socket_stream {
+public:
+    using native_handle_type = std::uint64_t;
+
+    constexpr static native_handle_type invalid_native_handle_value = ~native_handle_type(0);
+
 private:
     static thread_local std::size_t _tl_wsabufs_arr_len;
     static thread_local wsabuf*     _tl_small_wsabufs_array;
+
+    std::uint64_t _native_handle = invalid_native_handle_value;
 
     native_stream_write_result _do_write_arr(std::size_t nbufs) noexcept;
     native_stream_read_result  _do_read_arr(std::size_t nbufs) noexcept;
@@ -43,7 +52,7 @@ private:
         for (; buf_it != buf_stop && out_it != out_end; ++buf_it, ++out_it) {
             auto buf    = *buf_it;
             out_it->buf = reinterpret_cast<char*>(const_cast<std::byte*>(buf.data()));
-            out_it->len = buf.size();
+            out_it->len = static_cast<std::uint32_t>(buf.size());
         }
         return n_bufs;
     }
@@ -59,10 +68,41 @@ private:
         auto n_bufs = _prep_wsabufs_arr(bufs);
         return _do_write_arr(n_bufs);
     }
+
+public:
+    constexpr wsa_socket_stream() = default;
+
+    wsa_socket_stream(wsa_socket_stream&& o) noexcept
+        : _native_handle(std::exchange(o._native_handle, invalid_native_handle_value)) {}
+
+    wsa_socket_stream& operator=(wsa_socket_stream&& o) noexcept {
+        reset(std::exchange(o._native_handle, invalid_native_handle_value));
+        return *this;
+    }
+
+    ~wsa_socket_stream() { shutdown(); }
+    void shutdown();
+
+    constexpr native_handle_type native_handle() const noexcept { return _native_handle; }
+
+    void reset(native_handle_type&& sock) noexcept {
+        shutdown();
+        _native_handle = sock;
+    }
+
+    template <mutable_buffer_range Bufs>
+    [[nodiscard]] native_stream_read_result read_some(Bufs out) noexcept {
+        return _do_read_some(out);
+    }
+
+    template <buffer_range Bufs>
+    [[nodiscard]] native_stream_write_result write_some(Bufs in) noexcept {
+        return _do_write_some(in);
+    }
 };
 
 #if NEO_OS_IS_WINDOWS
-using native_stream_socket = wsa_socket_stream;
+using native_socket_stream = wsa_socket_stream;
 #else
 using native_socket_stream = native_stream;
 #endif
