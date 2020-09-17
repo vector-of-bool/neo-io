@@ -57,7 +57,7 @@ public:
         if (_bufs_io.available() < size) {
             auto want_read_n = size - _bufs_io.available();
             auto in_bufs     = _bufs_io.prepare(want_read_n);
-            auto read_res    = read(stream(), in_bufs);
+            auto read_res    = stream().read_some(in_bufs);
             _bufs_io.commit(read_res.bytes_transferred);
         }
         return _bufs_io.next(size);
