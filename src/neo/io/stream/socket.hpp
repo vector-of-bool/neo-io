@@ -159,6 +159,7 @@ public:
 
     socket()         = default;
     socket(socket&&) = default;
+    socket& operator=(socket&&) = default;
     ~socket();
 
     auto& native() noexcept { return _stream; }
