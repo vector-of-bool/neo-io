@@ -11,8 +11,7 @@ namespace neo::ssl {
  * This object should be created and outlive the scope of all of the
  * application's ssl::context objects.
  */
-NEO_IO_OPENSSL_API_ATTR
-class openssl_app_init {
+class NEO_IO_OPENSSL_API_ATTR openssl_app_init {
 public:
     openssl_app_init();
     ~openssl_app_init();
