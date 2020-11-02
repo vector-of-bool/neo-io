@@ -51,6 +51,7 @@ public:
         _bufs_io.commit(size);
         auto write_res = write(stream(), _bufs_io.next(size));
         _bufs_io.consume(write_res.bytes_transferred);
+        throw_if_transfer_errant(write_res, "Failed write in stream_io_buffers::commit()");
     }
 
     constexpr decltype(auto) next(std::size_t size) requires(read_stream<stream_type>) {
@@ -59,6 +60,7 @@ public:
             auto in_bufs     = _bufs_io.prepare(want_read_n);
             auto read_res    = stream().read_some(in_bufs);
             _bufs_io.commit(read_res.bytes_transferred);
+            throw_if_transfer_errant(read_res, "Failed read in stream_io_buffers::next()");
         }
         return _bufs_io.next(size);
     }
