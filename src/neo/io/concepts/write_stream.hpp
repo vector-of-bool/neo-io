@@ -9,22 +9,20 @@
 namespace neo {
 
 // clang-format off
-template <typename T>
-concept write_stream = requires(T stream, const_buffer buf) {
+template <typename T, typename Bufs = const_buffer>
+concept write_stream = requires(T stream, Bufs buf) {
     { stream.write_some(buf) } noexcept -> transfer_result;
 };
 
 template <typename T>
 concept vectored_write_stream =
     write_stream<T> &&
-    requires (T stream, proto_buffer_range bufs) {
-        { stream.write_some(bufs) } noexcept
-            -> transfer_result;
-    };
+    write_stream<T, proto_buffer_range>;
 // clang-format on
 
 template <write_stream Stream, typename Bufs = const_buffer>
-using write_result_t = std::decay_t<decltype(ref_v<Stream>.write_some(cref_v<Bufs>))>;
+requires write_stream<Stream, Bufs>  //
+    using write_result_t = std::decay_t<decltype(ref_v<Stream>.write_some(cref_v<Bufs>))>;
 
 struct proto_write_stream {
     proto_write_stream()  = delete;
