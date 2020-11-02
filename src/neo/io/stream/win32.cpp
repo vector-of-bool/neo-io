@@ -22,10 +22,10 @@ native_read_result win32_handle_stream_base::read_some(mutable_buffer mbuf) noex
     auto  dw_size    = static_cast<DWORD>(mbuf.size());
     ::SetLastError(0);
     ::ReadFile(_native_handle, mbuf.data(), dw_size, &n_did_read, nullptr);
-    return {
+    return {{
         .bytes_transferred = static_cast<std::size_t>(n_did_read),
-        .error             = static_cast<int>(::GetLastError()),
-    };
+        .errn              = static_cast<int>(::GetLastError()),
+    }};
 }
 
 native_write_result win32_handle_stream_base::write_some(const_buffer cbuf) noexcept {
@@ -33,10 +33,10 @@ native_write_result win32_handle_stream_base::write_some(const_buffer cbuf) noex
     auto  dw_size     = static_cast<DWORD>(cbuf.size());
     ::SetLastError(0);
     ::WriteFile(_native_handle, cbuf.data(), dw_size, &n_did_write, nullptr);
-    return {
+    return {{
         .bytes_transferred = static_cast<std::size_t>(n_did_write),
-        .error             = static_cast<int>(::GetLastError()),
-    };
+        .errn              = static_cast<int>(::GetLastError()),
+    }};
 }
 
 namespace {

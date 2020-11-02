@@ -25,7 +25,7 @@ io_detail::wsa_socket_stream::_do_write_some(const_buffer cbuf) noexcept {
     DWORD nsent = 0;
     ::SetLastError(0);
     ::WSASend(native_handle(), &buf, 1, &nsent, 0, nullptr, nullptr);
-    return {.bytes_transferred = nsent, .error = ::WSAGetLastError()};
+    return {{.bytes_transferred = nsent, .errn = ::WSAGetLastError()}};
 }
 
 native_stream_read_result
@@ -37,7 +37,7 @@ io_detail::wsa_socket_stream::_do_read_some(mutable_buffer mbuf) noexcept {
     DWORD flags = 0;
     ::SetLastError(0);
     ::WSARecv(native_handle(), &buf, 1, &nsent, &flags, nullptr, nullptr);
-    return {.bytes_transferred = nsent, .error = ::WSAGetLastError()};
+    return {{.bytes_transferred = nsent, .errn = ::WSAGetLastError()}};
 }
 
 #endif
