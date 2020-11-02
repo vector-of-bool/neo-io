@@ -34,12 +34,14 @@ do_io_op(Bufs&& bufs_, Cond&& cond, std::bool_constant<UseBufferRanges>, Op&& op
             break;
         }
         auto next_out = bufs_io.next(req_to_transfer);
-        res_acc += op(next_out);
+        if (!buffer_is_empty(next_out)) {
+            res_acc = sum_transfer_result(res_acc, op(next_out));
+        }
         // Advance the buffer consumer by how much we transfered:
         auto n_transferred = res_acc.bytes_transferred - tr_before;
         bufs_io.consume(n_transferred);
         // If we had a failure, return now
-        if (res_acc.is_failure()) {
+        if (transfer_errant(res_acc)) {
             break;
         }
         // If no bytes were transferred, there's nothing we can do.

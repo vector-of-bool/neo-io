@@ -6,29 +6,15 @@
 
 namespace neo {
 
-struct native_stream_read_result {
-    std::size_t bytes_transferred = 0;
-    int         error             = 0;
-    bool        is_failure() const noexcept { return bool(error); }
-
-    native_stream_read_result& operator+=(native_stream_read_result o) noexcept {
-        bytes_transferred += o.bytes_transferred;
-        error = o.error;
-        return *this;
-    }
+struct native_transfer_result {
+    std::size_t    bytes_transferred = 0;
+    int            errn              = 0;
+    constexpr bool has_error() const noexcept { return errn != 0; }
+    auto           error() const noexcept { return std::error_code(errn, std::system_category()); }
 };
 
-struct native_stream_write_result {
-    std::size_t bytes_transferred = 0;
-    int         error             = 0;
-    bool        is_failure() const noexcept { return bool(error); }
-
-    native_stream_write_result& operator+=(native_stream_write_result o) noexcept {
-        bytes_transferred += o.bytes_transferred;
-        error = o.error;
-        return *this;
-    }
-};
+struct native_stream_read_result : native_transfer_result {};
+struct native_stream_write_result : native_transfer_result {};
 
 static_assert(transfer_result<native_stream_read_result>);
 static_assert(transfer_result<native_stream_write_result>);

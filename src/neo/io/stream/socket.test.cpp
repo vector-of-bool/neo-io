@@ -24,7 +24,7 @@ TEST_CASE("Open a connected socket") {
 
     neo::string_dynbuf_io strbuf;
     auto                  res = sock.read_some(strbuf.prepare(1024));
-    CHECK_FALSE(res.is_failure());
+    CHECK_FALSE(res.error());
     CHECK(res.bytes_transferred > 0);
     strbuf.commit(res.bytes_transferred);
     CHECK(strbuf.read_area_view().substr(0, 8) == "HTTP/1.1");
