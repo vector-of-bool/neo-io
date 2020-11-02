@@ -3,6 +3,7 @@
 #include <neo/io/stream/native.hpp>
 
 #include <neo/buffer_range.hpp>
+#include <neo/enum.hpp>
 
 #include <filesystem>
 #include <optional>
@@ -24,33 +25,28 @@ enum class open_mode : int {
     trunc    = 1 << 7,
 };
 
-constexpr open_mode operator|(open_mode l, open_mode r) noexcept {
-    return open_mode(int(l) | int(r));
-}
-constexpr open_mode& operator|=(open_mode& self, open_mode r) noexcept { return self = (self | r); }
+NEO_DECL_ENUM_BITOPS(open_mode);
 
 constexpr open_mode default_open_flags(open_mode flags = open_mode()) noexcept {
-    using om  = open_mode;
-    auto test = [&](om f) { return bool(int(flags) & int(f)); };
-
+    using om = open_mode;
     // Default open mode is to read
     if (flags == om::none) {
         flags = om::read;
     }
 
     // If appending, we want to both read and write
-    if (test(om::append)) {
+    if (test_flags(flags, om::append)) {
         flags |= om::read;
         flags |= om::write;
     }
 
-    if (test(om::write)) {
+    if (test_flags(flags, om::write)) {
         // If not told otherwise, writing will create the file if it does not exist
-        if (!test(om::no_create)) {
+        if (!test_flags(flags, om::no_create)) {
             flags |= om::create;
         }
         // By default, opening a file to write will truncate it (except if appending)
-        if (!test(om::append) && !test(om::no_trunc)) {
+        if (!test_flags(flags, om::append) && !test_flags(flags, om::no_trunc)) {
             flags |= om::trunc;
         }
     }

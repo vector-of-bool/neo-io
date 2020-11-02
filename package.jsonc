@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "namespace": "neo",
     "depends": [
+        "neo-fun~0.5.0",
         "neo-buffer~0.4.2"
     ],
     "test_driver": "Catch-Main"
