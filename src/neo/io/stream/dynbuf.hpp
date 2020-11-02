@@ -15,22 +15,22 @@ namespace neo {
  * writing will append data to the end of the buffer.
  */
 template <dynamic_buffer DynBuffer>
-class dynamic_buffer_stream {
+class dynbuf_stream {
     DynBuffer _bufs;
 
 public:
-    dynamic_buffer_stream(DynBuffer&& b)
+    dynbuf_stream(DynBuffer&& b)
         : _bufs(NEO_FWD(b)) {}
 
     template <buffer_range Bufs>
-    native_stream_write_result write_some(const Bufs& src) noexcept {
+    basic_transfer_result write_some(const Bufs& src) noexcept {
         const auto grow_size = buffer_size(src);
         auto       out       = _bufs.grow(grow_size);
         return {buffer_copy(out, src)};
     }
 
     template <mutable_buffer_range Bufs>
-    native_stream_read_result read_some(const Bufs& dest) noexcept {
+    basic_transfer_result read_some(const Bufs& dest) noexcept {
         const std::size_t avail_size = _bufs.size();
         const std::size_t read_size  = (std::min)(buffer_size(dest), avail_size);
         buffer_copy(dest, _bufs.data(0, read_size));

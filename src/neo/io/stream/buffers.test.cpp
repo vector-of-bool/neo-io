@@ -16,8 +16,8 @@ NEO_TEST_CONCEPT(neo::buffer_sink<neo::stream_io_buffers<neo::proto_write_stream
 NEO_TEST_CONCEPT(neo::buffer_source<neo::stream_io_buffers<neo::proto_read_stream>>);
 
 TEST_CASE("Create a buffer wrapper around a stream") {
-    std::string                str;
-    neo::dynamic_buffer_stream string_stream{neo::as_dynamic_buffer(str)};
+    std::string        str;
+    neo::dynbuf_stream string_stream{neo::as_dynamic_buffer(str)};
 
     neo::stream_io_buffers buffers{string_stream};
 

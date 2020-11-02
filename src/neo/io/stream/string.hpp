@@ -21,12 +21,12 @@ public:
 
     template <buffer_range Bufs>
     auto write_some(const Bufs& bufs) noexcept {
-        return dynamic_buffer_stream(as_dynamic_buffer(string)).write_some(bufs);
+        return dynbuf_stream(as_dynamic_buffer(string)).write_some(bufs);
     }
 
     template <mutable_buffer_range Bufs>
     auto read_some(const Bufs& bufs) noexcept {
-        return dynamic_buffer_stream(as_dynamic_buffer(string)).read_some(bufs);
+        return dynbuf_stream(as_dynamic_buffer(string)).read_some(bufs);
     }
 };
 
