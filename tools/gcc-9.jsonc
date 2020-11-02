@@ -11,5 +11,10 @@
         "-fconcepts",
         "-std=c++2a"
     ],
+    "link_flags": [
+        "-l:libssl.a",
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
     "debug": true
 }
