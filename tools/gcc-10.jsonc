@@ -2,5 +2,10 @@
     "compiler_id": "gnu",
     "cxx_compiler": "g++-10",
     "cxx_version": "c++20",
+    "link_flags": [
+        "-l:libssl.a",
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
     "debug": true
 }
