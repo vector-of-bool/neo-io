@@ -7,6 +7,7 @@ $this_script = $MyInvocation.MyCommand.Definition
 $tools_dir = Split-Path -Parent $this_script
 $root_dir = Split-Path -Parent $tools_dir
 $build_dir = Join-Path $root_dir "_build"
+New-Item -ItemType Container $build_dir -ErrorAction Ignore
 
 $local_tgz = Join-Path $build_dir "openssl.tgz"
 
