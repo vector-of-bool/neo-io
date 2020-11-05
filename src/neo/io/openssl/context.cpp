@@ -59,7 +59,7 @@ context::context(protocol pr, role rl) {
 
     case p::ssl_v3:
 #if OpenSSL_1_1_0_Or_Greater
-        _ssl_ctx_ptr = ::LOAD_METHOD(TLS);
+        _ssl_ctx_ptr = LOAD_METHOD(TLS);
         SET_PROTO_VERSION(MY_CTX_PTR, SSL3_VERSION);
 #elif defined(OPENSSL_NO_SSL3)
         unsupported("This OpenSSL does not support SSLv3");

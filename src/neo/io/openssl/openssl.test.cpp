@@ -30,7 +30,10 @@ TEST_CASE("Initialize a connection") {
     eng     = {ctx, input, output};
     REQUIRE_NOTHROW(eng.connect());
 
+#if defined(SIGPIPE)
     std::signal(SIGPIPE, SIG_IGN);
+#endif
+
     eng.write(
         neo::const_buffer("GET / HTTP/1.1\r\n"
                           "Host: google.com\r\n"

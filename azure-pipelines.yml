@@ -10,6 +10,7 @@ jobs:
       - script: |
           echo Loading VS environment
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\vsdevcmd" -arch=x64 || exit 1
+          pwsh -noni tools\get-win-openssl.ps1
           echo Downloading DDS executable
           pwsh -noni -c iwr https://github.com/vector-of-bool/dds/releases/download/0.1.0-alpha.4/dds-win-x64.exe -OutFile dds.exe || exit 1
           echo Build
