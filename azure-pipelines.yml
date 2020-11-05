@@ -65,7 +65,7 @@ jobs:
           chmod +x dds
           ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
-      - script: ./dds build -t tools/gcc-9.jsonc
+      - script: ./dds build -t tools/gcc-9-macos.jsonc
         displayName: Build and Run Unit Tests
 
   - job: macos_gcc10
@@ -81,5 +81,5 @@ jobs:
           chmod +x dds
           ./dds catalog import -j pkgs-cat.jsonc
         displayName: Prepare System
-      - script: ./dds build -t tools/gcc-10.jsonc
+      - script: ./dds build -t tools/gcc-10-macos.jsonc
         displayName: Build and Run Unit Tests
