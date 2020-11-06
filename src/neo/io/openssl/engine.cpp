@@ -136,7 +136,7 @@ struct engine_impl {
 
 }  // namespace neo::ssl::detail
 
-detail::engine_base::engine_base(context& ctx_) {
+engine_base::engine_base(context& ctx_) {
     auto ctx = static_cast<::SSL_CTX*>(ctx_.c_ptr());
     auto ssl = ::SSL_new(ctx);
     if (!ssl) {
@@ -154,7 +154,7 @@ detail::engine_base::engine_base(context& ctx_) {
     _bio_ptr = outer_bio;
 }
 
-void detail::engine_base::_free() noexcept {
+void engine_base::_free() noexcept {
     if (_bio_ptr) {
         ::BIO_free(MY_BIO_PTR);
     }
@@ -163,14 +163,14 @@ void detail::engine_base::_free() noexcept {
     }
 }
 
-void detail::engine_base::connect(std::error_code& ec) {
-    engine_impl::run(*this, ec, [&] { return ::SSL_connect(MY_SSL_PTR); });
+void engine_base::connect(std::error_code& ec) {
+    detail::engine_impl::run(*this, ec, [&] { return ::SSL_connect(MY_SSL_PTR); });
 }
 
-neo::basic_transfer_result detail::engine_base::read_some(mutable_buffer mb) noexcept {
+neo::basic_transfer_result engine_base::read_some(mutable_buffer mb) noexcept {
     std::error_code ec;
     std::size_t     total_read = 0;
-    engine_impl::run(*this, ec, [&] {
+    detail::engine_impl::run(*this, ec, [&] {
         auto nread = ::SSL_read(MY_SSL_PTR, mb.data(), static_cast<int>(mb.size()));
         if (nread > 0) {
             mb += nread;
@@ -181,10 +181,10 @@ neo::basic_transfer_result detail::engine_base::read_some(mutable_buffer mb) noe
     return {total_read, ec};
 }
 
-neo::basic_transfer_result detail::engine_base::write_some(const_buffer cb) noexcept {
+neo::basic_transfer_result engine_base::write_some(const_buffer cb) noexcept {
     std::error_code ec;
     std::size_t     total_written = 0;
-    engine_impl::run(*this, ec, [&] {
+    detail::engine_impl::run(*this, ec, [&] {
         auto nwritten = ::SSL_write(MY_SSL_PTR, cb.data(), static_cast<int>(cb.size()));
         if (nwritten > 0) {
             cb += nwritten;
@@ -195,8 +195,8 @@ neo::basic_transfer_result detail::engine_base::write_some(const_buffer cb) noex
     return {total_written, ec};
 }
 
-void detail::engine_base::shutdown(std::error_code& ec) {
-    engine_impl::run(*this, ec, [&] { return ::SSL_shutdown(MY_SSL_PTR); });
+void engine_base::shutdown(std::error_code& ec) {
+    detail::engine_impl::run(*this, ec, [&] { return ::SSL_shutdown(MY_SSL_PTR); });
 }
 
 #endif

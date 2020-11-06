@@ -24,6 +24,8 @@ inline void throw_error(std::error_code ec, std::string_view s) {
     }
 }
 
+}  // namespace detail
+
 /**
  * HOW THIS WORKS:
  *
@@ -67,7 +69,7 @@ public:
     void connect() {
         std::error_code ec;
         connect(ec);
-        throw_error(ec, "Failure while initializing client-side SSL/TLS connection");
+        detail::throw_error(ec, "Failure while initializing client-side SSL/TLS connection");
     }
 
     /**
@@ -82,7 +84,7 @@ public:
     void shutdown() {
         std::error_code ec;
         shutdown(ec);
-        throw_error(ec, "Failure while shutting down SSL/TLS connection");
+        detail::throw_error(ec, "Failure while shutting down SSL/TLS connection");
     }
 
     /**
@@ -130,8 +132,6 @@ protected:
     void _free() noexcept;
 };
 
-}  // namespace detail
-
 /**
  * @brief An OpenSSL connection engine.
  *
@@ -143,7 +143,7 @@ protected:
  * buffer_sink, ready to be transmitted to the peer.
  */
 template <buffer_source Input, buffer_sink Output>
-class NEO_IO_OPENSSL_API_ATTR engine : public detail::engine_base {
+class NEO_IO_OPENSSL_API_ATTR engine : public engine_base {
 public:
     using input_type  = std::remove_cvref_t<Input>;
     using output_type = std::remove_cvref_t<Output>;
@@ -185,6 +185,18 @@ public:
      */
     engine(context& ctx, Input&& in, Output&& out)
         : engine::engine_base(ctx)
+        , _input(NEO_FWD(in))
+        , _output(NEO_FWD(out)) {}
+
+    /**
+     * @brief Move-from an existing engine object, but use the two given input and outputs
+     *
+     * @param other An engine to move-from. The buffers from this engine are not used.
+     * @param in The buffer_source to use
+     * @param out The buffer_sink to use
+     */
+    engine(engine_base&& other, Input&& in, Output&& out)
+        : engine::engine_base(std::move(other))
         , _input(NEO_FWD(in))
         , _output(NEO_FWD(out)) {}
 
