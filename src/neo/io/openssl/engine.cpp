@@ -48,7 +48,11 @@ struct engine_impl {
             if (ec) {
                 break;
             }
-            ec = make_error_code(flush_io(eng));
+            try {
+                ec = make_error_code(flush_io(eng));
+            } catch (const std::system_error& err) {
+                ec = err.code();
+            }
             if (state == stop || ec) {
                 break;
             }
@@ -163,24 +167,32 @@ void detail::engine_base::connect(std::error_code& ec) {
     engine_impl::run(*this, ec, [&] { return ::SSL_connect(MY_SSL_PTR); });
 }
 
-void detail::engine_base::read(mutable_buffer mb, std::error_code& ec) {
+neo::basic_transfer_result detail::engine_base::read_some(mutable_buffer mb) noexcept {
+    std::error_code ec;
+    std::size_t     total_read = 0;
     engine_impl::run(*this, ec, [&] {
         auto nread = ::SSL_read(MY_SSL_PTR, mb.data(), static_cast<int>(mb.size()));
         if (nread > 0) {
             mb += nread;
+            total_read += nread;
         }
         return nread;
     });
+    return {total_read, ec};
 }
 
-void detail::engine_base::write(const_buffer cb, std::error_code& ec) {
+neo::basic_transfer_result detail::engine_base::write_some(const_buffer cb) noexcept {
+    std::error_code ec;
+    std::size_t     total_written = 0;
     engine_impl::run(*this, ec, [&] {
         auto nwritten = ::SSL_write(MY_SSL_PTR, cb.data(), static_cast<int>(cb.size()));
         if (nwritten > 0) {
             cb += nwritten;
+            total_written += nwritten;
         }
         return nwritten;
     });
+    return {total_written, ec};
 }
 
 void detail::engine_base::shutdown(std::error_code& ec) {

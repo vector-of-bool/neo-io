@@ -2,6 +2,7 @@
 #include <neo/io/stream/buffers.hpp>
 #include <neo/io/stream/socket.hpp>
 
+#include <neo/io/concepts/stream.hpp>
 #include <neo/string_io.hpp>
 
 #include <catch2/catch.hpp>
@@ -34,15 +35,18 @@ TEST_CASE("Initialize a connection") {
     std::signal(SIGPIPE, SIG_IGN);
 #endif
 
-    eng.write(
-        neo::const_buffer("GET / HTTP/1.1\r\n"
-                          "Host: google.com\r\n"
-                          "Content-Length: 0\r\n\r\n"));
+    neo::write(eng,
+               neo::const_buffer("GET / HTTP/1.1\r\n"
+                                 "Host: google.com\r\n"
+                                 "Content-Length: 0\r\n\r\n"));
     std::string buf;
     buf.resize(1024);
-    eng.read(neo::mutable_buffer(buf));
+    eng.read_some(neo::mutable_buffer(buf));
     INFO(buf);
     eng.shutdown();
 }
+
+NEO_TEST_CONCEPT(
+    neo::read_write_stream<neo::ssl::engine<neo::proto_buffer_source, neo::proto_buffer_sink>>);
 
 #endif

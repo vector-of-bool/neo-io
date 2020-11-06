@@ -8,6 +8,7 @@
 #include <neo/const_buffer.hpp>
 #include <neo/dynbuf_io.hpp>
 #include <neo/enum.hpp>
+#include <neo/io/concepts/result.hpp>
 #include <neo/mutable_buffer.hpp>
 #include <neo/shifting_dynamic_buffer.hpp>
 
@@ -92,27 +93,16 @@ public:
      *
      * @note May throw if the underlying IO throws
      */
-    void read(mutable_buffer mb, std::error_code& ec);
-    void read(mutable_buffer mb) {
-        std::error_code ec;
-        read(mb, ec);
-        throw_error(ec, "Failure while reading from SSL/TLS connection");
-    }
+    basic_transfer_result read_some(mutable_buffer mb) noexcept;
 
     /**
      * @brief Feed the plaintext data into the engine.
      *
      * @param cb The data to write into the engine.
-     * @param ec Receives the error code of the operation.
      *
      * @note May throw if the underlying IO throws
      */
-    void write(const_buffer cb, std::error_code& ec);
-    void write(const_buffer cb) {
-        std::error_code ec;
-        write(cb, ec);
-        throw_error(ec, "Failure while writing to SSL/TLS connection");
-    }
+    basic_transfer_result write_some(const_buffer cb) noexcept;
 
 private:
     void* _ssl_ptr = nullptr;
