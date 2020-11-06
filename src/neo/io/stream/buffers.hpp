@@ -22,11 +22,11 @@ requires(read_stream<Stream> || write_stream<Stream>)  //
     class stream_io_buffers {
 public:
     using stream_type  = std::remove_cvref_t<Stream>;
-    using buffers_type = std::remove_cvref_t<Stream>;
+    using buffers_type = std::remove_cvref_t<Buffers>;
 
 private:
     wrap_if_reference_t<Stream> _strm;
-    dynbuf_io<Buffers>          _bufs_io;
+    dynbuf_io<Buffers>          _io_bufs;
 
 public:
     constexpr stream_io_buffers() = default;
@@ -34,39 +34,43 @@ public:
     constexpr explicit stream_io_buffers(Stream&& s)
         : _strm(NEO_FWD(s)) {}
 
+    constexpr stream_io_buffers(Stream&& s, dynbuf_io<Buffers> io_bufs)
+        : _strm(NEO_FWD(s))
+        , _io_bufs(NEO_FWD(io_bufs)) {}
+
     constexpr stream_io_buffers(Stream&& s, Buffers&& bufs)
         : _strm(NEO_FWD(s))
-        , _bufs_io(NEO_FWD(bufs)) {}
+        , _io_bufs(NEO_FWD(bufs)) {}
 
     constexpr auto& stream() noexcept { return unref(_strm); }
     constexpr auto& stream() const noexcept { return unref(_strm); }
-    constexpr auto& buffers() noexcept { return _bufs_io.storage(); }
-    constexpr auto& buffers() const noexcept { return _bufs_io.storage(); }
+    constexpr auto& io_buffers() noexcept { return _io_bufs; }
+    constexpr auto& io_buffers() const noexcept { return _io_bufs; }
 
     constexpr decltype(auto) prepare(std::size_t size) requires(write_stream<stream_type>) {
-        return _bufs_io.prepare(size);
+        return _io_bufs.prepare(size);
     }
 
     constexpr decltype(auto) commit(std::size_t size) requires(write_stream<stream_type>) {
-        _bufs_io.commit(size);
-        auto write_res = write(stream(), _bufs_io.next(size));
-        _bufs_io.consume(write_res.bytes_transferred);
+        _io_bufs.commit(size);
+        auto write_res = write(stream(), _io_bufs.next(size));
+        _io_bufs.consume(write_res.bytes_transferred);
         throw_if_transfer_errant(write_res, "Failed write in stream_io_buffers::commit()");
     }
 
     constexpr decltype(auto) next(std::size_t size) requires(read_stream<stream_type>) {
-        if (_bufs_io.available() < size) {
-            auto want_read_n = size - _bufs_io.available();
-            auto in_bufs     = _bufs_io.prepare(want_read_n);
+        if (_io_bufs.available() < size) {
+            auto want_read_n = size - _io_bufs.available();
+            auto in_bufs     = _io_bufs.prepare(want_read_n);
             auto read_res    = stream().read_some(in_bufs);
-            _bufs_io.commit(read_res.bytes_transferred);
+            _io_bufs.commit(read_res.bytes_transferred);
             throw_if_transfer_errant(read_res, "Failed read in stream_io_buffers::next()");
         }
-        return _bufs_io.next(size);
+        return _io_bufs.next(size);
     }
 
     constexpr decltype(auto) consume(std::size_t size) requires(read_stream<stream_type>) {
-        _bufs_io.consume(size);
+        _io_bufs.consume(size);
     }
 };
 
