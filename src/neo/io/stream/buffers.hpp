@@ -25,8 +25,8 @@ public:
     using buffers_type = std::remove_cvref_t<Buffers>;
 
 private:
-    wrap_if_reference_t<Stream> _strm;
-    dynbuf_io<Buffers>          _io_bufs;
+    wrap_refs_t<Stream> _strm;
+    dynbuf_io<Buffers>  _io_bufs;
 
 public:
     constexpr stream_io_buffers() = default;
@@ -42,8 +42,9 @@ public:
         : _strm(NEO_FWD(s))
         , _io_bufs(NEO_FWD(bufs)) {}
 
-    constexpr auto& stream() noexcept { return unref(_strm); }
-    constexpr auto& stream() const noexcept { return unref(_strm); }
+    NEO_DECL_UNREF_GETTER(stream, _strm);
+    NEO_DECL_REF_REBINDER(rebind_stream, Stream, _strm);
+
     constexpr auto& io_buffers() noexcept { return _io_bufs; }
     constexpr auto& io_buffers() const noexcept { return _io_bufs; }
 
