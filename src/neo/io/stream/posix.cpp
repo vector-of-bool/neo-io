@@ -42,6 +42,7 @@ void posix_fd_stream_base::close() noexcept {
         if (failed) {
             std::fputs("posix_fd_stream_base::close() encountered an error()\n", stderr);
         }
+        _native_handle = invalid_native_handle_value;
     }
 }
 
