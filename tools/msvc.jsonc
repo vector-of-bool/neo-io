@@ -1,0 +1,23 @@
+// Compiler-ID: MSVC
+// Flags: /std:c++latest
+{
+    "compiler_id": "msvc",
+    "cxx_flags": [
+        "/std:c++latest",
+        "/Zc:preprocessor",
+        "/Iexternal/OpenSSL/include",
+    ],
+    "link_flags": [
+        "Ws2_32.lib",
+        // Deps for OpenSSL:
+        "AdvApi32.lib",
+        "Crypt32.lib",
+        "User32.lib",
+        // Link in our external OpenSSL:
+        "/link",
+        "/LibPath:external/OpenSSL/lib",
+        "libssl.lib",
+        "libcrypto.lib",
+    ],
+    "debug": true
+}

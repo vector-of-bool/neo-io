@@ -1,0 +1,5 @@
+_build/
+.vscode/
+
+# Populated automatically by ci.ps1 for OpenSSL on Windows:
+external/OpenSSL
