@@ -57,7 +57,7 @@ inline void throw_error(std::error_code ec, std::string_view s) {
  * fed into 'Input'.
  */
 class engine_base {
-    friend struct engine_impl;
+    friend struct neo::ssl::detail::engine_impl;
 
 public:
     /**
