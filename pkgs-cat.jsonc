@@ -10,10 +10,10 @@
             }
         },
         "neo-fun": {
-            "0.5.0": {
+            "0.5.4": {
                 "git": {
                     "url": "https://github.com/vector-of-bool/neo-fun.git",
-                    "ref": "0.5.0"
+                    "ref": "0.5.4"
                 }
             }
         },
