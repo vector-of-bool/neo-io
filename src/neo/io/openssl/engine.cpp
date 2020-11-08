@@ -163,7 +163,7 @@ void engine_base::_free() noexcept {
     }
 }
 
-void engine_base::connect(std::error_code& ec) {
+void engine_base::connect(std::error_code& ec) noexcept {
     detail::engine_impl::run(*this, ec, [&] { return ::SSL_connect(MY_SSL_PTR); });
 }
 
@@ -195,8 +195,10 @@ neo::basic_transfer_result engine_base::write_some(const_buffer cb) noexcept {
     return {total_written, ec};
 }
 
-void engine_base::shutdown(std::error_code& ec) {
+void engine_base::shutdown(std::error_code& ec) noexcept {
     detail::engine_impl::run(*this, ec, [&] { return ::SSL_shutdown(MY_SSL_PTR); });
 }
+
+bool engine_base::needs_input() const noexcept { return SSL_want_read(MY_SSL_PTR); }
 
 #endif

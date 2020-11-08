@@ -3,14 +3,17 @@
 #include "./context.hpp"
 #include "./init.hpp"
 
+#include <neo/io/concepts/result.hpp>
+
 #include <neo/buffer_sink.hpp>
 #include <neo/buffer_source.hpp>
 #include <neo/const_buffer.hpp>
 #include <neo/dynbuf_io.hpp>
 #include <neo/enum.hpp>
-#include <neo/io/concepts/result.hpp>
+#include <neo/error.hpp>
 #include <neo/mutable_buffer.hpp>
 #include <neo/shifting_dynamic_buffer.hpp>
+#include <neo/utility.hpp>
 
 namespace neo::ssl {
 
@@ -62,14 +65,10 @@ public:
      * called once before any other IO operations.
      *
      * @param ec Receives the error code of the operation.
-     *
-     * @note May throw if the underlying IO throws
      */
-    void connect(std::error_code& ec);
+    void connect(std::error_code& ec) noexcept;
     void connect() {
-        std::error_code ec;
-        connect(ec);
-        detail::throw_error(ec, "Failure while initializing client-side SSL/TLS connection");
+        connect("Failure while initializing client-side SSL/TLS connection"_ec_throw);
     }
 
     /**
@@ -77,23 +76,15 @@ public:
      * operation may be performed.
      *
      * @param ec Receives the error code of the operation.
-     *
-     * @note May throw if the underlying IO throws
      */
-    void shutdown(std::error_code& ec);
-    void shutdown() {
-        std::error_code ec;
-        shutdown(ec);
-        detail::throw_error(ec, "Failure while shutting down SSL/TLS connection");
-    }
+    void shutdown(std::error_code& ec) noexcept;
+    void shutdown() { shutdown("Failure while shutting down SSL/TLS connection"_ec_throw); }
 
     /**
      * @brief Read from the decrypted plaintext stream into the given buffer.
      *
      * @param mb Destination of the read bytes.
      * @param ec Receives the error code of the operation.
-     *
-     * @note May throw if the underlying IO throws
      */
     basic_transfer_result read_some(mutable_buffer mb) noexcept;
 
@@ -101,10 +92,10 @@ public:
      * @brief Feed the plaintext data into the engine.
      *
      * @param cb The data to write into the engine.
-     *
-     * @note May throw if the underlying IO throws
      */
     basic_transfer_result write_some(const_buffer cb) noexcept;
+
+    bool needs_input() const noexcept;
 
 private:
     void* _ssl_ptr = nullptr;
@@ -120,13 +111,13 @@ protected:
     engine_base(context&);
     ~engine_base() { _free(); }
     engine_base(engine_base&& o) noexcept
-        : _ssl_ptr(std::exchange(o._ssl_ptr, nullptr))
-        , _bio_ptr(std::exchange(o._bio_ptr, nullptr)) {}
+        : _ssl_ptr(neo::take(o._ssl_ptr))
+        , _bio_ptr(neo::take(o._bio_ptr)) {}
 
     engine_base& operator=(engine_base&& o) noexcept {
         _free();
-        _ssl_ptr = std::exchange(o._ssl_ptr, nullptr);
-        _bio_ptr = std::exchange(o._bio_ptr, nullptr);
+        _ssl_ptr = neo::take(o._ssl_ptr);
+        _bio_ptr = neo::take(o._bio_ptr);
         return *this;
     }
     void _free() noexcept;
@@ -202,6 +193,9 @@ public:
 
     NEO_DECL_UNREF_GETTER(input, _input);
     NEO_DECL_UNREF_GETTER(output, _output);
+
+    NEO_DECL_REF_REBINDER(rebind_input, Input, _input);
+    NEO_DECL_REF_REBINDER(rebind_output, Output, _output);
 
     void*       ssl_c_ptr() noexcept { return _ssl_ptr; }
     const void* ssl_c_ptr() const noexcept { return _ssl_ptr; }

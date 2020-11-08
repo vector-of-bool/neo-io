@@ -2,9 +2,9 @@
 
 #include "./init.hpp"
 
-#include <utility>
-
 #include <neo/io/config.hpp>
+
+#include <neo/utility.hpp>
 
 namespace neo::ssl {
 
@@ -44,11 +44,11 @@ public:
     ~context() { _close(); }
 
     context(context&& o) noexcept
-        : _ssl_ctx_ptr(std::exchange(o._ssl_ctx_ptr, nullptr)) {}
+        : _ssl_ctx_ptr(neo::take(o._ssl_ctx_ptr)) {}
 
     context& operator=(context&& c) noexcept {
         _close();
-        _ssl_ctx_ptr = std::exchange(c._ssl_ctx_ptr, nullptr);
+        _ssl_ctx_ptr = neo::take(c._ssl_ctx_ptr);
         return *this;
     }
 
