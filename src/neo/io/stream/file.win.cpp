@@ -14,21 +14,23 @@ std::optional<neo::file_stream> neo::file_stream::open(const std::filesystem::pa
     DWORD attrs      = FILE_ATTRIBUTE_NORMAL;
     DWORD flags      = 0;
 
-    using om       = open_mode;
-    auto test_flag = [&](om f) { return (int)open_flags & (int)f; };
-    open_flags     = default_open_flags(open_flags);
+    neo_assertion_breadcrumbs("Opening file", fpath.string());
 
-    if (test_flag(om::write)) {
+    using om    = open_mode;
+    open_flags  = default_open_flags(open_flags);
+    auto is_set = test_flags(open_flags);
+
+    if (is_set(om::write)) {
         access |= GENERIC_WRITE;
     }
-    if (test_flag(om::read)) {
+    if (is_set(om::read)) {
         access |= GENERIC_READ;
     }
 
-    if (test_flag(om::create_exclusive)) {
+    if (is_set(om::create_exclusive)) {
         creation = CREATE_NEW;
-    } else if (test_flag(om::create)) {
-        if (test_flag(om::trunc)) {
+    } else if (is_set(om::create)) {
+        if (is_set(om::trunc)) {
             // Create a new file, overwriting a previous
             creation = CREATE_ALWAYS;
         } else {
@@ -36,7 +38,7 @@ std::optional<neo::file_stream> neo::file_stream::open(const std::filesystem::pa
             creation = OPEN_ALWAYS;
         }
     } else {
-        if (test_flag(om::trunc)) {
+        if (is_set(om::trunc)) {
             // Open an existing file and truncate it.
             creation = TRUNCATE_EXISTING;
         } else {
@@ -66,7 +68,7 @@ std::optional<neo::file_stream> neo::file_stream::open(const std::filesystem::pa
     file_stream ret;
     ret._strm = native_stream::from_native_handle(std::move(hndl));
 
-    if (test_flag(om::append)) {
+    if (is_set(om::append)) {
         LONG high_offset = 0;
         ::SetLastError(0);
         ::SetFilePointer(ret.native().native_handle(), 0, &high_offset, FILE_END);

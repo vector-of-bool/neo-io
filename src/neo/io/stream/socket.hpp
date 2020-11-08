@@ -1,8 +1,9 @@
 #pragma once
 
-#include <neo/platform.hpp>
-
 #include <neo/io/stream/native.hpp>
+
+#include <neo/error.hpp>
+#include <neo/platform.hpp>
 
 #include <optional>
 #include <system_error>
@@ -137,13 +138,9 @@ public:
     resolve(const std::string& host, const std::string& service, std::error_code&) noexcept;
 
     static address resolve(const std::string& host, const std::string& service) {
-        std::error_code ec;
-        auto            addr = resolve(host, service, ec);
-        if (ec) {
-            throw std::system_error(ec,
-                                    "Failed to resolve host " + std::string(host)
-                                        + " with service/port " + std::string(service));
-        }
+        error_code_thrower err;
+        auto               addr = resolve(host, service, err);
+        err("Failed to resolve host '{}' with service/port '{}'", host, service);
         return *addr;
     }
 };
@@ -167,12 +164,7 @@ public:
 
     static std::optional<socket> create(address::family, type, std::error_code& ec) noexcept;
     static socket                create(address::family fam, type ty) {
-        std::error_code ec;
-        auto            s = create(fam, ty, ec);
-        if (ec) {
-            throw std::system_error(ec, "Failed to create a new socket");
-        }
-        return std::move(*s);
+        return *create(fam, ty, "Failed to create a new socket"_ec_throw);
     }
 
     static std::optional<socket>
@@ -181,16 +173,14 @@ public:
         if (s) {
             s->connect(addr, ec);
         }
+        if (ec) {
+            return {};
+        }
         return s;
     }
 
     static socket open_connected(address addr, type typ) {
-        std::error_code ec;
-        auto            sock = open_connected(addr, typ, ec);
-        if (ec) {
-            throw std::system_error(ec, "Failed to connect socket");
-        }
-        return std::move(*sock);
+        return *open_connected(addr, typ, "Failed to connect socket"_ec_throw);
     }
 
     void connect(address addr, std::error_code& ec) noexcept;

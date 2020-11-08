@@ -8,33 +8,36 @@
 std::optional<neo::file_stream> neo::file_stream::open(const std::filesystem::path& fpath,
                                                        neo::open_mode               open_flags,
                                                        std::error_code&             ec) noexcept {
-    int open_mode  = 0;
-    using om       = neo::open_mode;
-    auto test_flag = [&](om f) { return (int)open_flags & (int)f; };
-    open_flags     = default_open_flags(open_flags);
+    int open_mode = 0;
+    using om      = neo::open_mode;
 
-    if (test_flag(open_mode::append)) {
+    neo_assertion_breadcrumbs("Opening file", fpath.string());
+
+    open_flags  = default_open_flags(open_flags);
+    auto is_set = test_flags(open_flags);
+
+    if (is_set(om::append)) {
         open_mode |= O_APPEND;
     }
 
-    if (test_flag(om::read)) {
-        if (test_flag(om::write)) {
+    if (is_set(om::read)) {
+        if (is_set(om::write)) {
             open_mode = O_RDWR;
         } else {
             open_mode = O_RDONLY;
         }
-    } else if (test_flag(om::write)) {
+    } else if (is_set(om::write)) {
         open_mode = O_WRONLY;
     }
 
-    if (test_flag(om::trunc)) {
+    if (is_set(om::trunc)) {
         // Truncate the file upon opening
         open_mode |= O_TRUNC;
     }
 
-    if (test_flag(om::create_exclusive)) {
+    if (is_set(om::create_exclusive)) {
         open_mode |= O_CREAT | O_EXCL;
-    } else if (test_flag(om::create)) {
+    } else if (is_set(om::create)) {
         open_mode |= O_CREAT;
     } else {
         // The file should already exist
