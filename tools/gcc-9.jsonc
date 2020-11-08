@@ -1,0 +1,20 @@
+// Compiler-ID: GNU
+// C++-Version: C++17
+// C-Compiler: gcc-9
+// C++-Compiler: g++-9
+// Flags: -fconcepts
+// Debug: True
+{
+    "compiler_id": "gnu",
+    "cxx_compiler": "g++-9",
+    "cxx_flags": [
+        "-fconcepts",
+        "-std=c++2a"
+    ],
+    "link_flags": [
+        "-l:libssl.a",
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
+    "debug": true
+}
