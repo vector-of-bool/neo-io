@@ -59,8 +59,7 @@ public:
      */
     void reset(native_handle_type&& hndl) noexcept {
         close();
-        this->_native_handle = hndl;
-        hndl                 = this->invalid_native_handle_value;
+        this->_native_handle = std::exchange(hndl, this->invalid_native_handle_value);
     }
 
     /**
