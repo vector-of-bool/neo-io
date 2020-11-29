@@ -3,6 +3,7 @@
 #include <neo/io/config.hpp>
 
 #include <neo/as_buffer.hpp>
+#include <neo/event.hpp>
 
 #if NEO_FeatureIsEnabled(neo_io, OpenSSL_Support)
 
@@ -164,6 +165,7 @@ void engine_base::_free() noexcept {
 }
 
 void engine_base::connect(std::error_code& ec) noexcept {
+    neo::emit(ev_handshake{});
     detail::engine_impl::run(*this, ec, [&] { return ::SSL_connect(MY_SSL_PTR); });
 }
 
