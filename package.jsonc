@@ -1,10 +1,10 @@
 {
     "name": "neo-io",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "namespace": "neo",
     "depends": [
-        "neo-fun~0.5.4",
-        "neo-buffer~0.4.2"
+        "neo-fun^0.6.0",
+        "neo-buffer^0.4.2"
     ],
     "test_driver": "Catch-Main"
 }

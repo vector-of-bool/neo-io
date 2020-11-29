@@ -130,6 +130,11 @@ public:
         unixdom,
     };
 
+    struct ev_resolve {
+        std::string_view host;
+        std::string_view service;
+    };
+
     address() = default;
 
     family get_family() const noexcept;
@@ -152,6 +157,10 @@ public:
     enum class type {
         stream,
         datagram,
+    };
+
+    struct ev_connect {
+        const address& addr;
     };
 
     socket()         = default;

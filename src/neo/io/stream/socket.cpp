@@ -1,5 +1,7 @@
 #include "./socket.hpp"
 
+#include <neo/event.hpp>
+
 #include <cstring>
 #include <ostream>
 
@@ -53,6 +55,7 @@ std::optional<address> address::resolve(const std::string& host,
                                         const std::string& service,
                                         std::error_code&   ec) noexcept {
     io_detail::init_sockets();
+    neo::emit(ev_resolve{host, service});
     ::addrinfo* res = nullptr;
     auto        rc  = ::getaddrinfo(host.data(), service.data(), nullptr, &res);
     if (rc != 0) {
@@ -127,6 +130,7 @@ socket::create(address::family fam, socket::type typ, std::error_code& ec) noexc
 
 void socket::connect(address addr, std::error_code& ec) noexcept {
     io_detail::init_sockets();
+    neo::emit(ev_connect{addr});
     auto rc = ::connect(_stream.native_handle(),
                         reinterpret_cast<const ::sockaddr*>(&addr._storage),
                         static_cast<::socklen_t>(addr._size));

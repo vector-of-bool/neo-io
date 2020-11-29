@@ -29,6 +29,8 @@ inline void throw_error(std::error_code ec, std::string_view s) {
 
 }  // namespace detail
 
+struct ev_handshake {};
+
 /**
  * HOW THIS WORKS:
  *
