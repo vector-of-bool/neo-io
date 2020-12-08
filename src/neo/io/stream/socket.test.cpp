@@ -29,3 +29,13 @@ TEST_CASE("Open a connected socket") {
     strbuf.commit(res.bytes_transferred);
     CHECK(strbuf.read_area_view().substr(0, 8) == "HTTP/1.1");
 }
+
+TEST_CASE("Open to a non-connected port") {
+    auto addr = neo::address::resolve("localhost", "6666");
+    try {
+        neo::socket::open_connected(addr, neo::socket::type::stream);
+        FAIL_CHECK("Socket connection succeeded when it should have failed.");
+    } catch (const std::system_error& e) {
+        CHECK(e.code() == std::errc::connection_refused);
+    }
+}

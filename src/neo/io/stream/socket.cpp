@@ -8,8 +8,10 @@
 #if NEO_OS_IS_UNIX_LIKE
 #include <netdb.h>
 #include <sys/socket.h>
+static int last_error_code() noexcept { return errno; }
 #elif NEO_OS_IS_WINDOWS
 #include <WS2tcpip.h>
+static int last_error_code() noexcept { return ::WSAGetLastError(); }
 #endif
 
 using namespace neo;
@@ -120,7 +122,7 @@ socket::create(address::family fam, socket::type typ, std::error_code& ec) noexc
 
     auto sockfd = ::socket(af_fam, sock_typ, 0);
     if (sockfd == -1) {
-        ec = std::error_code(errno, std::system_category());
+        ec = std::error_code(last_error_code(), std::system_category());
         return std::nullopt;
     }
     socket s;
@@ -135,6 +137,6 @@ void socket::connect(address addr, std::error_code& ec) noexcept {
                         reinterpret_cast<const ::sockaddr*>(&addr._storage),
                         static_cast<::socklen_t>(addr._size));
     if (rc) {
-        ec = std::error_code(errno, std::system_category());
+        ec = std::error_code(last_error_code(), std::system_category());
     }
 }
