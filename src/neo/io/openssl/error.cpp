@@ -28,7 +28,8 @@ const std::error_category& neo::ssl::error_category() noexcept {
 }
 
 void neo::ssl::throw_current(std::string_view str) {
-    throw std::system_error(std::error_code(::ERR_get_error(), error_category()), std::string(str));
+    throw std::system_error(std::error_code(static_cast<int>(::ERR_get_error()), error_category()),
+                            std::string(str));
 }
 
 #endif

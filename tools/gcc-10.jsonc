@@ -7,5 +7,6 @@
         "-l:libcrypto.a",
         "-ldl",
     ],
+    "warning_flags": "-Werror",
     "debug": true
 }
