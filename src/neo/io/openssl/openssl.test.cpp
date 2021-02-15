@@ -4,6 +4,7 @@
 
 #include <neo/io/concepts/stream.hpp>
 #include <neo/string_io.hpp>
+#include <neo/test_concept.hpp>
 
 #include <catch2/catch.hpp>
 

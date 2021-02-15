@@ -7,5 +7,6 @@
         "-l:libcrypto.a",
         "-ldl",
     ],
+    "warning_flags": "-Werror -Wno-error=deprecated-declarations",
     "debug": true
 }
