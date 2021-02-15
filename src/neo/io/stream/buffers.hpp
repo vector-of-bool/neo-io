@@ -70,7 +70,7 @@ public:
         return _io_bufs.next(size);
     }
 
-    constexpr decltype(auto) consume(std::size_t size) requires(read_stream<stream_type>) {
+    constexpr decltype(auto) consume(std::size_t size) noexcept requires(read_stream<stream_type>) {
         _io_bufs.consume(size);
     }
 };

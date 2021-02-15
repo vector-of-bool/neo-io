@@ -1,7 +1,6 @@
 {
     "name": "io",
     "uses": [
-        "neo/concepts",
         "neo/buffer"
     ]
 }
