@@ -60,10 +60,13 @@ public:
     }
 
     constexpr decltype(auto) next(std::size_t size) requires(read_stream<stream_type>) {
-        if (_io_bufs.available() < size) {
-            auto want_read_n = size - _io_bufs.available();
-            auto in_bufs     = _io_bufs.prepare(want_read_n);
-            auto read_res    = stream().read_some(in_bufs);
+        if (_io_bufs.available() > size) {
+            return _io_bufs.next(size);
+        } else if (_io_bufs.available()) {
+            return _io_bufs.next(_io_bufs.available());
+        } else {
+            auto in_bufs  = _io_bufs.prepare(size);
+            auto read_res = stream().read_some(in_bufs);
             _io_bufs.commit(read_res.bytes_transferred);
             throw_if_transfer_errant(read_res, "Failed read in stream_io_buffers::next()");
         }
