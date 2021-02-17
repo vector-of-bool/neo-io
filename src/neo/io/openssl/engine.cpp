@@ -172,14 +172,16 @@ void engine_base::connect(std::error_code& ec) noexcept {
 neo::basic_transfer_result engine_base::read_some(mutable_buffer mb) noexcept {
     std::error_code ec;
     std::size_t     total_read = 0;
-    detail::engine_impl::run(*this, ec, [&] {
-        auto nread = ::SSL_read(MY_SSL_PTR, mb.data(), static_cast<int>(mb.size()));
-        if (nread > 0) {
-            mb += nread;
-            total_read += nread;
-        }
-        return nread;
-    });
+    if (!mb.empty()) {
+        detail::engine_impl::run(*this, ec, [&] {
+            auto nread = ::SSL_read(MY_SSL_PTR, mb.data(), static_cast<int>(mb.size()));
+            if (nread > 0) {
+                mb += nread;
+                total_read += nread;
+            }
+            return nread;
+        });
+    }
     return {total_read, ec};
 }
 
