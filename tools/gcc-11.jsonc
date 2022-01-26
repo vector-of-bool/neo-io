@@ -1,0 +1,12 @@
+{
+    "compiler_id": "gnu",
+    "cxx_compiler": "g++-11",
+    "cxx_version": "c++20",
+    "link_flags": [
+        "-l:libssl.a",
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
+    "warning_flags": "-Werror -Wno-error=deprecated-declarations",
+    "debug": true
+}

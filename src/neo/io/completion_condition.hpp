@@ -4,6 +4,8 @@
 
 #include <neo/concepts.hpp>
 
+#include <limits>
+
 namespace neo {
 
 // clang-format off
