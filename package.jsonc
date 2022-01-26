@@ -1,6 +1,6 @@
 {
     "name": "neo-io",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "namespace": "neo",
     "depends": [
         "neo-fun^0.7.0",
