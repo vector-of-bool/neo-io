@@ -6,7 +6,7 @@
 
 using namespace neo;
 
-void io_detail::init_sockets() noexcept {
+void io_detail::init_winsock() noexcept {
     WSADATA wsd;
     ::WSAStartup(MAKEWORD(2, 2), &wsd);
 }

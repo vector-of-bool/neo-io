@@ -5,6 +5,8 @@
 #include <neo/error.hpp>
 #include <neo/platform.hpp>
 
+#include <array>
+#include <cinttypes>
 #include <optional>
 #include <system_error>
 
@@ -12,11 +14,13 @@ namespace neo {
 
 namespace io_detail {
 
-#if NEO_OS_IS_WINDOWS
-void init_sockets() noexcept;
-#else
-inline void init_sockets() noexcept {}
-#endif
+extern void init_winsock() noexcept;
+
+inline void init_sockets() noexcept {
+    if constexpr (neo::os_is_windows) {
+        init_winsock();
+    }
+}
 
 struct wsabuf {
     std::uint32_t len;
