@@ -99,6 +99,11 @@ public:
 
     bool needs_input() const noexcept;
 
+    void*       ssl_c_ptr() noexcept { return _ssl_ptr; }
+    const void* ssl_c_ptr() const noexcept { return _ssl_ptr; }
+    void*       bio_c_ptr() noexcept { return _bio_ptr; }
+    const void* bio_c_ptr() const noexcept { return _bio_ptr; }
+
 private:
     void* _ssl_ptr = nullptr;
     void* _bio_ptr = nullptr;
@@ -198,11 +203,6 @@ public:
 
     NEO_DECL_REF_REBINDER(rebind_input, Input, _input);
     NEO_DECL_REF_REBINDER(rebind_output, Output, _output);
-
-    void*       ssl_c_ptr() noexcept { return _ssl_ptr; }
-    const void* ssl_c_ptr() const noexcept { return _ssl_ptr; }
-    void*       bio_c_ptr() noexcept { return _bio_ptr; }
-    const void* bio_c_ptr() const noexcept { return _bio_ptr; }
 };
 
 template <buffer_source Input, buffer_sink Output>
